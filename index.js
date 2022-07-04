@@ -1,6 +1,7 @@
 const TuyaAccessory = require('./lib/TuyaAccessory');
 const TuyaDiscovery = require('./lib/TuyaDiscovery');
 
+const OutletPlus = require('./lib/OutletPlus');
 const OutletAccessory = require('./lib/OutletAccessory');
 const SimpleLightAccessory = require('./lib/SimpleLightAccessory');
 const MultiOutletAccessory = require('./lib/MultiOutletAccessory');
@@ -24,11 +25,14 @@ const SwitchAccessory = require('./lib/SwitchAccessory');
 const ValveAccessory = require('./lib/ValveAccessory');
 const OilDiffuserAccessory = require('./lib/OilDiffuserAccessory');
 
+const HomebridgeLib = require( 'homebridge-lib' );
+
 const PLUGIN_NAME = 'homebridge-tuya-lan';
 const PLATFORM_NAME = 'TuyaLan';
 
 const CLASS_DEF = {
     outlet: OutletAccessory,
+    outletplus: OutletPlus,
     simplelight: SimpleLightAccessory,
     rgbtwlight: RGBTWLightAccessory,
     rgbtwoutlet: RGBTWOutletAccessory,
@@ -53,13 +57,14 @@ const CLASS_DEF = {
 };
 
 let Characteristic, PlatformAccessory, Service, Categories, AdaptiveLightingController, UUID;
+let hbReference;
 
 module.exports = function(homebridge) {
     ({
         platformAccessory: PlatformAccessory,
         hap: {Characteristic, Service, AdaptiveLightingController, Accessory: {Categories}, uuid: UUID}
     } = homebridge);
-
+    hbReference = homebridge;
     homebridge.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, TuyaLan, true);
 };
 
@@ -67,9 +72,11 @@ class TuyaLan {
     constructor(...props) {
         [this.log, this.config, this.api] = [...props];
 
+        this.homebridge = hbReference;
         this.cachedAccessories = new Map();
+        let eve = new HomebridgeLib.EveHomeKitTypes(this.homebridge);
+        this.api.hap.EveCharacteristics = eve.Characteristics;
         this.api.hap.EnergyCharacteristics = require('./lib/EnergyCharacteristics')(this.api.hap.Characteristic);
-
         if(!this.config || !this.config.devices) {
             this.log("No devices found. Check that you have specified them in your config.json file.");
             return false;
@@ -162,8 +169,7 @@ class TuyaLan {
     }
 
     configureAccessory(accessory) {
-        // also checks null objects or empty config - this._expectedUUIDs
-        if (accessory instanceof PlatformAccessory && this._expectedUUIDs && this._expectedUUIDs.includes(accessory.UUID)) {
+        if (accessory instanceof PlatformAccessory && this._expectedUUIDs.includes(accessory.UUID)) {
             this.cachedAccessories.set(accessory.UUID, accessory);
             accessory.services.forEach(service => {
                 if (service.UUID === Service.AccessoryInformation.UUID) return;
@@ -173,9 +179,9 @@ class TuyaLan {
                         characteristic.props.perms.length !== 3 ||
                         !(characteristic.props.perms.includes(Characteristic.Perms.WRITE) && characteristic.props.perms.includes(Characteristic.Perms.NOTIFY))
                     ) return;
-
+                    if (characteristic.displayName == 'Reset Total')
+                        return;
                     this.log.info('Marked %s unreachable by faulting Service.%s.%s', accessory.displayName, service.displayName, characteristic.displayName);
-
                     characteristic.updateValue(new Error('Unreachable'));
                     return true;
                 });
