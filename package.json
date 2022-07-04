@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-tuya",
+  "name": "@paudebau/homebridge-tuya",
   "version": "2.0.1",
   "description": "🏠 Fork from Offical Homebridge plugin for TuyAPI ",
   "main": "index.js",
