@@ -1,7 +1,7 @@
 {
   "name": "homebridge-tuya",
   "version": "2.0.1",
-  "description": "🏠 Offical Homebridge plugin for TuyAPI ",
+  "description": "🏠 Fork from Offical Homebridge plugin for TuyAPI ",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iRayanKhan/homebridge-tuya.git"
+    "url": "git+https://github.com/paudebau/homebridge-tuya.git"
   },
   "author": "Rayan Khan",
   "license": "MIT",
