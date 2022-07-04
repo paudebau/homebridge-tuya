@@ -30,6 +30,12 @@
                       "Outlet"
                       ]
                   },
+                  { 
+                    "title": "Teckin SP22 Smart Plug",
+                    "enum": [
+                      "OutletPlus"
+                      ]
+                  },
                   {
                     "title": "Simple Light Bulb / Socket",
                     "enum": [
